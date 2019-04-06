@@ -23,7 +23,11 @@ struct Camera {
     position: f64,
     score: i64,
     play300: f64,
-    asset: Asset<Image>,
+    asset_hit300: Asset<Image>,
+    asset_note1: Asset<Image>,
+    asset_note2: Asset<Image>,
+    asset_noteS: Asset<Image>,
+    asset_bg: Asset<Image>,
     buttons: [bool; 7],
 }
 
@@ -91,7 +95,13 @@ impl State for Camera {
             _ => 0,
         } + 100;
 
-        let asset = Asset::new(Image::load("hit300.png"));
+        let asset_hit300 = Asset::new(Image::load("skin/hit300.png"));
+        let asset_hit100 = Asset::new(Image::load("skin/hit100.png"));
+        let asset_hit50 = Asset::new(Image::load("skin/hit50.png"));
+        let asset_note1 = Asset::new(Image::load("skin/mania-note1.png"));
+        let asset_note2 = Asset::new(Image::load("skin/mania-note2.png"));
+        let asset_noteS = Asset::new(Image::load("skin/mania-noteS.png"));
+        let asset_bg = Asset::new(Image::load("bg.png"));
 
         Ok(Camera {
             beatmap,
@@ -100,8 +110,12 @@ impl State for Camera {
             map,
             position: 0.0,
             score: 0,
-            asset,
+            asset_hit300,
             play300: 0.0,
+            asset_note1,
+            asset_note2,
+            asset_noteS,
+            asset_bg,
             buttons: [false, false, false, false, false, false, false],
         })
     }
@@ -203,37 +217,154 @@ impl State for Camera {
         } else {
             self.buttons[6] = false;
         }
+        if window.keyboard()[Key::Escape].is_down() {
+            std::process::exit(0);
+        }
         Ok(())
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::WHITE)?;
+        self.asset_bg.execute(|image| {
+            window.draw_ex(
+                &image.area().with_center((256, 192)),
+                Img(&image),
+                Transform::scale((512.0 / image.area().size.x, 384.0 / image.area().size.y)),
+                -2,
+            );
+            Ok(())
+        });
+        window.draw_ex(
+            &Rectangle::new((0, 0), (512, 384)),
+            Col(Color::from_rgba(0, 0, 0, 0.8)),
+            Transform::IDENTITY,
+            -1,
+        );
         let mut cur = 0;
         let mut cur_tp = &self.beatmap.timing_points[cur];
-        for obj in 0..(1000.0 / self.speed) as usize {
-            for (i, hit) in self.map[self.position as usize + obj as usize]
-                .iter()
-                .enumerate()
-            {
-                if *hit {
+        let speed = self.speed;
+        let map = &self.map;
+        let position = self.position;
+
+        self.asset_note1.execute(|image| {
+            for obj in 0..(1000.0 / speed) as usize {
+                let map_obj = map[position as usize + obj as usize];
+                if map_obj[0] {
                     window.draw_ex(
                         &Rectangle::new(
                             (
-                                (i as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * self.speed) as i32,
+                                (0 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
                             ),
-                            (73, self.speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
                         ),
-                        Col(Color::BLUE),
+                        Img(&image),
+                        Transform::scale((1, -1)),
+                        1,
+                    );
+                }
+                if map_obj[6] {
+                    window.draw_ex(
+                        &Rectangle::new(
+                            (
+                                (6 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
+                            ),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                        ),
+                        Img(&image),
+                        Transform::scale((1, -1)),
+                        1,
+                    );
+                }
+                if map_obj[2] {
+                    window.draw_ex(
+                        &Rectangle::new(
+                            (
+                                (2 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
+                            ),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                        ),
+                        Img(&image),
+                        Transform::scale((1, -1)),
+                        1,
+                    );
+                }
+                if map_obj[4] {
+                    window.draw_ex(
+                        &Rectangle::new(
+                            (
+                                (4 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
+                            ),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                        ),
+                        Img(&image),
                         Transform::scale((1, -1)),
                         1,
                     );
                 }
             }
-        }
+            Ok(())
+        });
+        self.asset_note2.execute(|image| {
+            for obj in 0..(1000.0 / speed) as usize {
+                let map_obj = map[position as usize + obj as usize];
+                if map_obj[1] {
+                    window.draw_ex(
+                        &Rectangle::new(
+                            (
+                                (1 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
+                            ),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                        ),
+                        Img(&image),
+                        Transform::scale((1, -1)),
+                        1,
+                    );
+                }
+                if map_obj[5] {
+                    window.draw_ex(
+                        &Rectangle::new(
+                            (
+                                (5 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
+                            ),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                        ),
+                        Img(&image),
+                        Transform::scale((1, -1)),
+                        1,
+                    );
+                }
+            }
+            Ok(())
+        });
+        self.asset_noteS.execute(|image| {
+            for obj in 0..(1000.0 / speed) as usize {
+                let map_obj = map[position as usize + obj as usize];
+                if map_obj[3] {
+                    window.draw_ex(
+                        &Rectangle::new(
+                            (
+                                (3 as i32) * 73,
+                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
+                            ),
+                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
+                        ),
+                        Img(&image),
+                        Transform::scale((1, -1)),
+                        1,
+                    );
+                }
+            }
+            Ok(())
+        });
+
         let play300 = self.play300;
         if self.play300 > 0.0 {
-            self.asset.execute(|image| {
+            self.asset_hit300.execute(|image| {
                 window.draw_ex(
                     &image.area().with_center((256, 192)),
                     Img(&image),
