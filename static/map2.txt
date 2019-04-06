@@ -1,0 +1,212 @@
+Ok(
+    Beatmap {
+        general: BeatmapGeneral {
+            audio_filename: "Sweet Rain.mp3",
+            audio_lead_in: 2004,
+            preview_time: 49755,
+            countdown: false,
+            sample_set: "Soft",
+            stack_leniency: 0.7,
+            mode: Mania,
+            letterbox_in_breaks: false,
+            widescreen_storyboard: true,
+        },
+        metadata: BeatmapMetadata {
+            title: "Sweet Rain",
+            title_unicode: "Sweet Rain",
+            artist: "Y&Co. feat. Karin",
+            artist_unicode: "Y&Co. feat. Karin",
+            creator: "Lieselotte",
+            version: "ultralight",
+            source: "jubeat",
+            tags: [
+                "knit",
+                "eurobeat",
+                "plus",
+                "jukebeat",
+                "reflec",
+                "beat",
+                "limelight",
+                "dancedancerevolution",
+            ],
+            beatmap_id: 0,
+            beatmap_set_id: 95592,
+        },
+        difficulty: BeatmapDifficulty {
+            hp_drain_rate: 7.0,
+            circle_size: 7.0,
+            overall_difficulty: 7.0,
+            approach_rate: 5.0,
+            slider_multiplier: 1.9,
+            slider_tick_rate: 1.0,
+        },
+        timing_points: [
+            TimingPoint {
+                offset: 207,
+                milliseconds_per_beat: 387.09677,
+                meter: 4,
+                sample_type: 2,
+                sample_set: 0,
+                volume: 30,
+                kiai_mode: false,
+                inherited: false,
+            },
+        ],
+        hit_objects: [
+            Circle {
+                base: HitObjectBase {
+                    x: 36,
+                    y: 192,
+                    time: 13,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 109,
+                    y: 192,
+                    time: 110,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 182,
+                    y: 192,
+                    time: 207,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 256,
+                    y: 192,
+                    time: 303,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 329,
+                    y: 192,
+                    time: 400,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 402,
+                    y: 192,
+                    time: 497,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 475,
+                    y: 192,
+                    time: 594,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 475,
+                    y: 192,
+                    time: 787,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 402,
+                    y: 192,
+                    time: 787,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 329,
+                    y: 192,
+                    time: 787,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 182,
+                    y: 192,
+                    time: 787,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 109,
+                    y: 192,
+                    time: 787,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 36,
+                    y: 192,
+                    time: 787,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            LongNote {
+                base: HitObjectBase {
+                    x: 256,
+                    y: 192,
+                    time: 981,
+                    object_type: 128,
+                    hit_sound: 0,
+                },
+                end_time: 1271,
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 256,
+                    y: 192,
+                    time: 1465,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 256,
+                    y: 192,
+                    time: 1561,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+            Circle {
+                base: HitObjectBase {
+                    x: 256,
+                    y: 192,
+                    time: 1658,
+                    object_type: 1,
+                    hit_sound: 0,
+                },
+            },
+        ],
+    },
+)

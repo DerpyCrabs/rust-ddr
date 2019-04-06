@@ -5,3 +5,5 @@ authors = ["DerpyCrabs <derpycrabs@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+quicksilver = "*"
+osu_format = "0.1.1"
