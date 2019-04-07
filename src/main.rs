@@ -1,5 +1,6 @@
 // Draw some multi-colored geometry to the screen
 use std::io::prelude::*;
+pub mod hit_score;
 
 extern crate quicksilver;
 
@@ -8,12 +9,21 @@ use quicksilver::{
     graphics::{Background::Col, Background::Img, Color, Font, FontStyle, Image, View},
     input::Key,
     lifecycle::{run, Asset, Settings, State, Window},
+    sound::Sound,
     Result,
 };
+
+use crate::hit_score::{HitResult, HitScore};
 
 use osu_format::{Beatmap, HitObject};
 
 type MapObj = [bool; 7];
+
+#[derive(PartialEq, Clone, Copy)]
+enum GameState {
+    Playing,
+    Paused,
+}
 
 struct Camera {
     beatmap: Beatmap,
@@ -22,12 +32,13 @@ struct Camera {
     map: Vec<MapObj>,
     position: f64,
     score: i64,
-    play300: f64,
-    asset_hit300: Asset<Image>,
     asset_note1: Asset<Image>,
     asset_note2: Asset<Image>,
     asset_noteS: Asset<Image>,
     asset_bg: Asset<Image>,
+    hit_score: HitScore,
+    asset_music: Asset<Sound>,
+    state: GameState,
     buttons: [bool; 7],
 }
 
@@ -95,13 +106,11 @@ impl State for Camera {
             _ => 0,
         } + 100;
 
-        let asset_hit300 = Asset::new(Image::load("skin/hit300.png"));
-        let asset_hit100 = Asset::new(Image::load("skin/hit100.png"));
-        let asset_hit50 = Asset::new(Image::load("skin/hit50.png"));
         let asset_note1 = Asset::new(Image::load("skin/mania-note1.png"));
         let asset_note2 = Asset::new(Image::load("skin/mania-note2.png"));
         let asset_noteS = Asset::new(Image::load("skin/mania-noteS.png"));
         let asset_bg = Asset::new(Image::load("bg.png"));
+        let asset_music = Asset::new(Sound::load("music.mp3"));
 
         Ok(Camera {
             beatmap,
@@ -110,27 +119,26 @@ impl State for Camera {
             map,
             position: 0.0,
             score: 0,
-            asset_hit300,
-            play300: 0.0,
+            hit_score: HitScore::new().unwrap(),
             asset_note1,
             asset_note2,
             asset_noteS,
             asset_bg,
+            asset_music,
+            state: GameState::Paused,
             buttons: [false, false, false, false, false, false, false],
         })
     }
 
     fn update(&mut self, window: &mut Window) -> Result<()> {
-        // if window.keyboard()[Key::Left].is_down() {
-        //     self.view = self.view.translate((-4, 0));
-        // }
-        // if window.keyboard()[Key::Right].is_down() {
-        //     self.view = self.view.translate((4, 0));
-        // }
         if window.current_fps() != 0.0 {
             self.position += 1000.0 / window.current_fps();
-            if self.play300 > 0.0 {
-                self.play300 -= 1000.0 / window.current_fps();
+        }
+        self.hit_score.update(window);
+        if self.position == 0.0 {
+            if self.state == GameState::Paused {
+                self.asset_music.execute(|sound| sound.play());
+                self.state = GameState::Playing;
             }
         }
         if window.keyboard()[Key::S].is_down() {
@@ -138,7 +146,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 0);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[0] = true;
             }
@@ -150,7 +158,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 1);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[1] = true;
             }
@@ -162,7 +170,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 2);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[2] = true;
             }
@@ -174,7 +182,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 3);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[3] = true;
             }
@@ -186,7 +194,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 4);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[4] = true;
             }
@@ -198,7 +206,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 5);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[5] = true;
             }
@@ -210,7 +218,7 @@ impl State for Camera {
                 let score = handle_keydown(&mut self.map, self.position, 6);
                 self.score += score;
                 if score == 300 {
-                    self.play300 = 300.0;
+                    self.hit_score.play(HitResult::Hit300);
                 }
                 self.buttons[6] = true;
             }
@@ -362,21 +370,7 @@ impl State for Camera {
             Ok(())
         });
 
-        let play300 = self.play300;
-        if self.play300 > 0.0 {
-            self.asset_hit300.execute(|image| {
-                window.draw_ex(
-                    &image.area().with_center((256, 192)),
-                    Img(&image),
-                    Transform::scale((
-                        1.0 - (((150.0 - play300).abs() as f32) / 150.0),
-                        1.0 - (((150.0 - play300).abs() as f32) / 150.0),
-                    )),
-                    1,
-                );
-                Ok(())
-            });
-        }
+        self.hit_score.draw(window, Vector::new(256, 192));
         Ok(())
     }
 }
