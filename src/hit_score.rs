@@ -7,6 +7,7 @@ use quicksilver::{
 
 #[derive(Copy, Clone)]
 pub enum HitResult {
+    NoHit,
     Miss,
     Hit50,
     Hit100,
@@ -40,6 +41,9 @@ impl HitScore {
     }
 
     pub fn play(&mut self, hit_result: HitResult) {
+        if let HitResult::NoHit = hit_result {
+            return;
+        }
         self.playing = Some((hit_result, self.animation_duration));
     }
 
@@ -65,6 +69,7 @@ impl HitScore {
                 HitResult::Hit50 => &mut self.asset_hit50,
                 HitResult::Hit100 => &mut self.asset_hit100,
                 HitResult::Hit300 => &mut self.asset_hit300,
+                _ => unreachable!(),
             };
             let animation_duration = self.animation_duration;
             asset

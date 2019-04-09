@@ -1,6 +1,9 @@
+use crate::hit_score::HitResult;
+use osu_format::HitObject;
 use quicksilver::{
     geom::{Shape, Transform, Vector},
     graphics::{Background::Img, Image},
+    input::Key,
     lifecycle::{Asset, Window},
     Result,
 };
@@ -17,10 +20,12 @@ pub struct Lane {
     asset_note: Asset<Image>,
     asset_slider_body: Asset<Image>,
     asset_slider_end: Asset<Image>,
+    is_pressed: bool,
+    hotkey: Key,
 }
 
 impl Lane {
-    pub fn new(lane_skin: LaneSkin) -> Result<Lane> {
+    pub fn new(lane_skin: LaneSkin, lane_map: &Vec<&HitObject>, hotkey: Key) -> Result<Lane> {
         let lane_skin_suffix = match lane_skin {
             LaneSkin::Lane1 => "1",
             LaneSkin::Lane2 => "2",
@@ -53,10 +58,23 @@ impl Lane {
             asset_note,
             asset_slider_body,
             asset_slider_end,
+            is_pressed: false,
+            hotkey,
         })
     }
 
-    pub fn update(&mut self, window: &mut Window) {}
+    pub fn update(&mut self, window: &mut Window) -> HitResult {
+        if window.keyboard()[self.hotkey].is_down() {
+            if !self.is_pressed {
+                self.is_pressed = true;
+                // handle keydown
+                return HitResult::Miss;
+            }
+        } else {
+            self.is_pressed = false;
+        }
+        return HitResult::NoHit;
+    }
 
     pub fn draw(&mut self, window: &mut Window, center: Vector) {}
 }
