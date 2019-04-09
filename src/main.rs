@@ -33,13 +33,11 @@ struct Camera {
     map: Vec<MapObj>,
     position: f64,
     score: i64,
-    asset_note1: Asset<Image>,
-    asset_note2: Asset<Image>,
-    asset_noteS: Asset<Image>,
     asset_bg: Asset<Image>,
     hit_score: HitScore,
     asset_music: Asset<Sound>,
     state: GameState,
+    lanes: Vec<Lane>,
     buttons: [bool; 7],
 }
 
@@ -96,6 +94,28 @@ fn handle_keydown(map: &mut Vec<MapObj>, position: f64, index: usize) -> i64 {
     return 0;
 }
 
+fn new_lanes(count: usize) -> Result<Vec<Lane>> {
+    let lanes: Vec<Result<Lane>> = Vec::new();
+    for i in 0..count / 2 {
+        let lane_skin = match i % 2 {
+            0 => LaneSkin::Lane1,
+            1 => LaneSkin::Lane2,
+        };
+        lanes.push(Lane::new(lane_skin));
+    }
+    for i in (count / 2)..count {
+        let lane_skin = match i % 2 {
+            0 => LaneSkin::Lane2,
+            1 => LaneSkin::Lane1,
+        };
+        lanes.push(Lane::new(lane_skin));
+    }
+    if count % 2 == 1 {
+        lanes[count / 2 + 1] = Lane::new(LaneSkin::LaneS);
+    }
+    lanes.into_iter().collect()
+}
+
 impl State for Camera {
     fn new() -> Result<Camera> {
         let f = std::fs::File::open("alice.osu").unwrap();
@@ -107,12 +127,8 @@ impl State for Camera {
             _ => 0,
         } + 100;
 
-        let asset_note1 = Asset::new(Image::load("skin/mania-note1.png"));
-        let asset_note2 = Asset::new(Image::load("skin/mania-note2.png"));
-        let asset_noteS = Asset::new(Image::load("skin/mania-noteS.png"));
         let asset_bg = Asset::new(Image::load("bg.png"));
         let asset_music = Asset::new(Sound::load("music.mp3"));
-
         Ok(Camera {
             beatmap,
             speed: 0.2,
@@ -121,12 +137,10 @@ impl State for Camera {
             position: 0.0,
             score: 0,
             hit_score: HitScore::new().unwrap(),
-            asset_note1,
-            asset_note2,
-            asset_noteS,
             asset_bg,
             asset_music,
             state: GameState::Paused,
+            lanes: new_lanes(7).unwrap(),
             buttons: [false, false, false, false, false, false, false],
         })
     }
@@ -254,7 +268,7 @@ impl State for Camera {
         let map = &self.map;
         let position = self.position;
 
-        self.asset_note1.execute(|image| {
+        
             for obj in 0..(1000.0 / speed) as usize {
                 let map_obj = map[position as usize + obj as usize];
                 if map_obj[0] {
@@ -271,109 +285,10 @@ impl State for Camera {
                         1,
                     );
                 }
-                if map_obj[6] {
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                (6 as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
-                            ),
-                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
-                        ),
-                        Img(&image),
-                        Transform::scale((1, -1)),
-                        1,
-                    );
-                }
-                if map_obj[2] {
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                (2 as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
-                            ),
-                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
-                        ),
-                        Img(&image),
-                        Transform::scale((1, -1)),
-                        1,
-                    );
-                }
-                if map_obj[4] {
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                (4 as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
-                            ),
-                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
-                        ),
-                        Img(&image),
-                        Transform::scale((1, -1)),
-                        1,
-                    );
-                }
             }
-            Ok(())
-        });
-        self.asset_note2.execute(|image| {
-            for obj in 0..(1000.0 / speed) as usize {
-                let map_obj = map[position as usize + obj as usize];
-                if map_obj[1] {
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                (1 as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
-                            ),
-                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
-                        ),
-                        Img(&image),
-                        Transform::scale((1, -1)),
-                        1,
-                    );
-                }
-                if map_obj[5] {
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                (5 as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
-                            ),
-                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
-                        ),
-                        Img(&image),
-                        Transform::scale((1, -1)),
-                        1,
-                    );
-                }
-            }
-            Ok(())
-        });
-        self.asset_noteS.execute(|image| {
-            for obj in 0..(1000.0 / speed) as usize {
-                let map_obj = map[position as usize + obj as usize];
-                if map_obj[3] {
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                (3 as i32) * 73,
-                                384 - (obj as f64 * (1000.0 / 384.0) * speed) as i32,
-                            ),
-                            (73, speed as f32 * cur_tp.milliseconds_per_beat / 8.0),
-                        ),
-                        Img(&image),
-                        Transform::scale((1, -1)),
-                        1,
-                    );
-                }
-            }
-            Ok(())
-        });
 
         self.hit_score.draw(window, Vector::new(256, 192));
         Ok(())
-    }
 }
 
 fn main() {
