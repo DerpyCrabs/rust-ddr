@@ -1,12 +1,12 @@
-// Draw some multi-colored geometry to the screen
 use std::io::prelude::*;
 pub mod hit_score;
+pub mod lane;
 
 extern crate quicksilver;
 
 use quicksilver::{
     geom::{Rectangle, Shape, Transform, Vector},
-    graphics::{Background::Col, Background::Img, Color, Font, FontStyle, Image, View},
+    graphics::{Background::Col, Background::Img, Color, Image},
     input::Key,
     lifecycle::{run, Asset, Settings, State, Window},
     sound::Sound,
@@ -14,6 +14,7 @@ use quicksilver::{
 };
 
 use crate::hit_score::{HitResult, HitScore};
+use crate::lane::{Lane, LaneSkin};
 
 use osu_format::{Beatmap, HitObject};
 
