@@ -8,6 +8,18 @@ use quicksilver::{
     Result,
 };
 
+fn distance_to_hit_result(od: f32, distance: u32) -> HitResult {
+    if (distance as f64) < (50.0 + 30.0 * (5.0 - od) / 5.0) as f64 {
+        HitResult::Hit300
+    } else if (distance as f64) < (100.0 + 40.0 * (5.0 - od) / 5.0) as f64 {
+        HitResult::Hit100
+    } else if (distance as f64) < (150.0 + 50.0 * (5.0 - od) / 5.0) as f64 {
+        HitResult::Hit50
+    } else {
+        HitResult::Miss
+    }
+}
+
 pub enum LaneSkin {
     Lane1,
     Lane2,
