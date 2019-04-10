@@ -80,10 +80,28 @@ impl Lane {
     }
 
     pub fn update(&mut self, window: &mut Window, position: f32) -> HitResult {
-        if window.keyboard()[self.hotkey].is_down() {
-            if !self.is_pressed {
+        let is_pressed = self.is_pressed;
+        let hotkey = self.hotkey;
+        if window.keyboard()[hotkey].is_down() {
+            if !is_pressed {
                 self.is_pressed = true;
-                // TODO handle keydown
+                let mut last_distance: Option<u32> = None;
+                for hit_object in self.map.iter() {
+                    // TODO handle long notes
+                    if let HitObject::Circle { base } = hit_object {
+                        let distance: u32 = ((base.time as i32) - (position as i32)).abs() as u32;
+                        if let Some(last_dist) = last_distance {
+                            if distance < last_dist {
+                                last_distance = Some(distance);
+                            } else {
+                                // TODO pass OD
+                                return distance_to_hit_result(0.0, last_dist);
+                            }
+                        } else {
+                            last_distance = Some(distance);
+                        }
+                    }
+                }
                 return HitResult::Miss;
             }
         } else {
