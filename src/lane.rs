@@ -2,7 +2,10 @@ use crate::hit_score::HitResult;
 use osu_format::HitObject;
 use quicksilver::{
     geom::{Rectangle, Shape, Transform, Vector},
-    graphics::{Background::Img, Image},
+    graphics::{
+        Background::{Col, Img},
+        Color, Image,
+    },
     input::Key,
     lifecycle::{Asset, Window},
     Result,
@@ -88,6 +91,7 @@ impl Lane {
                 HitObject::Circle { base } => {
                     if (base.time as f64) < (position - 200.0) as f64 {
                         self.lowest_index += 1;
+                        return HitResult::Miss;
                     } else {
                         break;
                     }
@@ -95,6 +99,7 @@ impl Lane {
                 HitObject::LongNote { base, .. } => {
                     if (base.time as f64) < (position - 200.0) as f64 {
                         self.lowest_index += 1;
+                        return HitResult::Miss;
                     } else {
                         break;
                     }
@@ -146,12 +151,42 @@ impl Lane {
         size: &Vector,
         position: f32,
         speed: f32,
+        key_height: f32,
+        hit_line: f32,
     ) {
         let hit_objects = &mut self.map;
         let lowest_index = self.lowest_index;
         // TODO make note fall speed and note size somewhat predictable
-        // TODO draw keys
         // TODO draw sliders
+        if self.is_pressed {
+            self.asset_key_down.execute(|key| {
+                window.draw_ex(
+                    &Rectangle::new((pos.x, pos.y + size.y - key_height), (size.x, key_height)),
+                    Img(&key),
+                    Transform::IDENTITY,
+                    4,
+                );
+                Ok(())
+            });
+        } else {
+            self.asset_key.execute(|key| {
+                window.draw_ex(
+                    &Rectangle::new((pos.x, pos.y + size.y - key_height), (size.x, key_height)),
+                    Img(&key),
+                    Transform::IDENTITY,
+                    4,
+                );
+                Ok(())
+            });
+        }
+
+        window.draw_ex(
+            &Rectangle::new((pos.x, pos.y - hit_line + size.y), (size.x, 2.0)),
+            Col(Color::RED),
+            Transform::IDENTITY,
+            5,
+        );
+
         self.asset_note.execute(|note| {
             for i in lowest_index..hit_objects.len() {
                 let hit_object = &hit_objects[i];
@@ -163,7 +198,8 @@ impl Lane {
                         &Rectangle::new(
                             (
                                 pos.x,
-                                pos.y + (size.y - (base.time as f32 - position) * (speed / 100.0)),
+                                pos.y - hit_line
+                                    + (size.y - (base.time as f32 - position) * (speed / 100.0)),
                             ),
                             (size.x, speed / 4.0),
                         ),

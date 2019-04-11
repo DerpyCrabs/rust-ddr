@@ -188,6 +188,8 @@ impl State for Camera {
                 &Vector::new(73, 384),
                 position,
                 speed * mpb,
+                80.0,
+                36.0,
             )
         });
 
