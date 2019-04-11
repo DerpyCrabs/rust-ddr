@@ -82,11 +82,33 @@ impl Lane {
     pub fn update(&mut self, window: &mut Window, position: f32) -> HitResult {
         let is_pressed = self.is_pressed;
         let hotkey = self.hotkey;
+
+        for i in self.lowest_index..self.map.len() {
+            match &self.map[i] {
+                HitObject::Circle { base } => {
+                    if (base.time as f64) < (position - 200.0) as f64 {
+                        self.lowest_index += 1;
+                    } else {
+                        break;
+                    }
+                }
+                HitObject::LongNote { base, .. } => {
+                    if (base.time as f64) < (position - 200.0) as f64 {
+                        self.lowest_index += 1;
+                    } else {
+                        break;
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
+
         if window.keyboard()[hotkey].is_down() {
             if !is_pressed {
                 self.is_pressed = true;
                 let mut last_distance: Option<u32> = None;
-                for hit_object in self.map.iter() {
+                for i in self.lowest_index..self.map.len() {
+                    let hit_object = &self.map[i];
                     // TODO handle long notes
                     if let HitObject::Circle { base } = hit_object {
                         let distance: u32 = ((base.time as i32) - (position as i32)).abs() as u32;
@@ -95,7 +117,14 @@ impl Lane {
                                 last_distance = Some(distance);
                             } else {
                                 // TODO pass OD
-                                return distance_to_hit_result(0.0, last_dist);
+                                let result = distance_to_hit_result(0.0, last_dist);
+                                match result {
+                                    HitResult::Miss => return result,
+                                    _ => {
+                                        self.lowest_index += 1;
+                                        return result;
+                                    }
+                                }
                             }
                         } else {
                             last_distance = Some(distance);
@@ -119,18 +148,22 @@ impl Lane {
         speed: f32,
     ) {
         let hit_objects = &mut self.map;
+        let lowest_index = self.lowest_index;
         // TODO make note fall speed and note size somewhat predictable
-        // TODO clip map drawing
         // TODO draw keys
         // TODO draw sliders
         self.asset_note.execute(|note| {
-            hit_objects.iter().for_each(|hit_object| {
+            for i in lowest_index..hit_objects.len() {
+                let hit_object = &hit_objects[i];
                 if let HitObject::Circle { base } = hit_object {
+                    if (base.time as f32 - position) * (speed / 100.0) > (size.y + 50.0) {
+                        break;
+                    }
                     window.draw_ex(
                         &Rectangle::new(
                             (
                                 pos.x,
-                                (size.y - (base.time as f32 - position)) * (speed / 100.0),
+                                pos.y + (size.y - (base.time as f32 - position) * (speed / 100.0)),
                             ),
                             (size.x, speed / 4.0),
                         ),
@@ -139,7 +172,7 @@ impl Lane {
                         3,
                     );
                 }
-            });
+            }
             Ok(())
         });
     }

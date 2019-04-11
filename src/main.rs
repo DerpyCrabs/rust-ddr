@@ -104,7 +104,7 @@ impl State for Camera {
 
         Ok(Camera {
             timing_points: beatmap.timing_points,
-            speed: 0.4,
+            speed: 0.2,
             position: 0.0,
             score: 0,
             hit_score: HitScore::new().unwrap(),
