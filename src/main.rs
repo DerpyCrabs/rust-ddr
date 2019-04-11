@@ -6,7 +6,7 @@ pub mod number;
 extern crate quicksilver;
 
 use quicksilver::{
-    geom::{Rectangle, Shape, Transform, Vector},
+    geom::{Line, Rectangle, Shape, Transform, Vector},
     graphics::{Background::Col, Background::Img, Color, Image},
     input::Key,
     lifecycle::{run, Asset, Settings, State, Window},
@@ -160,19 +160,21 @@ impl State for Camera {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
+        let Vector { x: w, y: h } = window.screen_size();
+
         self.asset_bg
             .execute(|image| {
                 window.draw_ex(
-                    &image.area().with_center((960, 540)),
+                    &image.area().with_center((w / 2.0, h / 2.0)),
                     Img(&image),
-                    Transform::scale((512.0 / image.area().size.x, 384.0 / image.area().size.y)),
+                    Transform::scale((w / image.area().size.x, h / image.area().size.y)),
                     -2,
                 );
                 Ok(())
             })
             .unwrap();
         window.draw_ex(
-            &Rectangle::new((0, 0), (1920, 1080)),
+            &Rectangle::new((0, 0), (w, h)),
             Col(Color::from_rgba(0, 0, 0, 0.8)),
             Transform::IDENTITY,
             -1,
@@ -184,16 +186,26 @@ impl State for Camera {
         self.lanes.iter_mut().enumerate().for_each(|(i, lane)| {
             lane.draw(
                 window,
-                &Vector::new(704 + (i as i32) * 73, 348),
-                &Vector::new(73, 384),
+                &Vector::new((w as i32 / 2) - 256 + (i as i32) * 73, 0),
+                &Vector::new(72, h),
                 position,
                 speed * mpb,
-                80.0,
-                36.0,
+                250.0,
+                106.0,
             )
         });
 
-        self.hit_score.draw(window, Vector::new(960, 540));
+        for i in 0..(self.lanes.len() + 1) {
+            window.draw(
+                &Line::new(
+                    ((w as i32 / 2) - 256 + (i as i32) * 73, 0),
+                    ((w as i32 / 2) - 256 + (i as i32) * 73, h - 106.0),
+                ),
+                Col(Color::from_rgba(255, 255, 255, 0.4)),
+            );
+        }
+
+        self.hit_score.draw(window, Vector::new(w / 2.0, h / 2.0));
 
         self.number.draw(
             window,

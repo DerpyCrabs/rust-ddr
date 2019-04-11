@@ -88,6 +88,7 @@ impl Lane {
 
         for i in self.lowest_index..self.map.len() {
             match &self.map[i] {
+                // TODO calculate max hit distance using formula
                 HitObject::Circle { base } => {
                     if (base.time as f64) < (position - 200.0) as f64 {
                         self.lowest_index += 1;
