@@ -1,6 +1,7 @@
 use std::io::prelude::*;
 pub mod hit_score;
 pub mod lane;
+pub mod number;
 
 extern crate quicksilver;
 
@@ -15,6 +16,7 @@ use quicksilver::{
 
 use crate::hit_score::{HitResult, HitScore};
 use crate::lane::{Lane, LaneSkin};
+use crate::number::Number;
 
 use osu_format::{HitObject, TimingPoint};
 
@@ -33,6 +35,7 @@ struct Camera {
     hit_score: HitScore,
     asset_music: Asset<Sound>,
     state: GameState,
+    number: Number,
     lanes: Vec<Lane>,
 }
 
@@ -110,6 +113,7 @@ impl State for Camera {
             hit_score: HitScore::new().unwrap(),
             asset_bg,
             asset_music,
+            number: Number::new().unwrap(),
             state: GameState::Paused,
             lanes: new_lanes(7, lane_maps, hotkeys).unwrap(),
         })
@@ -188,6 +192,20 @@ impl State for Camera {
         });
 
         self.hit_score.draw(window, Vector::new(960, 540));
+
+        self.number.draw(
+            window,
+            &Vector::new(0, 0),
+            &Vector::new(5, 5),
+            window.current_fps() as u32,
+        );
+        self.number.draw(
+            window,
+            &Vector::new(0, 200),
+            &Vector::new(5, 5),
+            self.score as u32,
+        );
+
         Ok(())
     }
 }
@@ -199,6 +217,9 @@ fn main() {
         Settings {
             vsync: false,
             fullscreen: true,
+            update_rate: 1.,
+            max_updates: 1,
+            draw_rate: 1.,
             ..Default::default()
         },
     );
