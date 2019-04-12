@@ -53,7 +53,12 @@ fn x_to_lane(x: u32) -> usize {
     }
 }
 
-fn new_lanes(count: usize, lane_maps: Vec<Vec<HitObject>>, hotkeys: Vec<Key>) -> Result<Vec<Lane>> {
+fn new_lanes(
+    count: usize,
+    lane_maps: Vec<Vec<HitObject>>,
+    hotkeys: Vec<Key>,
+    od: f32,
+) -> Result<Vec<Lane>> {
     let mut lanes: Vec<Result<Lane>> = Vec::new();
     for i in 0..count / 2 {
         let lane_skin = match i % 2 {
@@ -61,7 +66,7 @@ fn new_lanes(count: usize, lane_maps: Vec<Vec<HitObject>>, hotkeys: Vec<Key>) ->
             1 => LaneSkin::Lane2,
             _ => unreachable!(),
         };
-        lanes.push(Lane::new(lane_skin, &lane_maps[i], hotkeys[i]));
+        lanes.push(Lane::new(lane_skin, &lane_maps[i], hotkeys[i], od));
     }
     for i in (count / 2)..count {
         let lane_skin = match i % 2 {
@@ -69,10 +74,15 @@ fn new_lanes(count: usize, lane_maps: Vec<Vec<HitObject>>, hotkeys: Vec<Key>) ->
             1 => LaneSkin::Lane1,
             _ => unreachable!(),
         };
-        lanes.push(Lane::new(lane_skin, &lane_maps[i], hotkeys[i]));
+        lanes.push(Lane::new(lane_skin, &lane_maps[i], hotkeys[i], od));
     }
     if count % 2 == 1 {
-        lanes[count / 2] = Lane::new(LaneSkin::LaneS, &lane_maps[count / 2], hotkeys[count / 2]);
+        lanes[count / 2] = Lane::new(
+            LaneSkin::LaneS,
+            &lane_maps[count / 2],
+            hotkeys[count / 2],
+            od,
+        );
     }
     lanes.into_iter().collect()
 }
@@ -115,7 +125,9 @@ impl State for Camera {
             asset_music,
             number: Number::new().unwrap(),
             state: GameState::Paused,
-            lanes: new_lanes(7, lane_maps, hotkeys).unwrap(),
+            // TODO read OD from beatmap
+            // TODO read lane count from beatmap
+            lanes: new_lanes(7, lane_maps, hotkeys, 3.0).unwrap(),
         })
     }
 

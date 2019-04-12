@@ -39,10 +39,11 @@ pub struct Lane {
     hotkey: Key,
     map: Vec<HitObject>,
     lowest_index: usize,
+    od: f32,
 }
 
 impl Lane {
-    pub fn new(lane_skin: LaneSkin, lane_map: &[HitObject], hotkey: Key) -> Result<Lane> {
+    pub fn new(lane_skin: LaneSkin, lane_map: &[HitObject], hotkey: Key, od: f32) -> Result<Lane> {
         let lane_skin_suffix = match lane_skin {
             LaneSkin::Lane1 => "1",
             LaneSkin::Lane2 => "2",
@@ -79,6 +80,7 @@ impl Lane {
             hotkey,
             map: lane_map.to_vec(),
             lowest_index: 0,
+            od,
         })
     }
 
@@ -97,8 +99,8 @@ impl Lane {
                         break;
                     }
                 }
-                HitObject::LongNote { base, .. } => {
-                    if (base.time as f64) < (position - 200.0) as f64 {
+                HitObject::LongNote { end_time, .. } => {
+                    if (*end_time as f64) < (position - 200.0) as f64 {
                         self.lowest_index += 1;
                         return HitResult::Miss;
                     } else {
@@ -122,8 +124,7 @@ impl Lane {
                             if distance < last_dist {
                                 last_distance = Some(distance);
                             } else {
-                                // TODO pass OD
-                                let result = distance_to_hit_result(0.0, last_dist);
+                                let result = distance_to_hit_result(self.od, last_dist);
                                 match result {
                                     HitResult::Miss => return result,
                                     _ => {
@@ -188,29 +189,86 @@ impl Lane {
             5,
         );
 
-        self.asset_note.execute(|note| {
-            for i in lowest_index..hit_objects.len() {
-                let hit_object = &hit_objects[i];
-                if let HitObject::Circle { base } = hit_object {
+        for i in lowest_index..hit_objects.len() {
+            let hit_object = &hit_objects[i];
+            match hit_object {
+                HitObject::Circle { base } => {
                     if (base.time as f32 - position) * (speed / 100.0) > (size.y + 50.0) {
                         break;
                     }
-                    window.draw_ex(
-                        &Rectangle::new(
-                            (
-                                pos.x,
-                                pos.y - hit_line
-                                    + (size.y - (base.time as f32 - position) * (speed / 100.0)),
+                    self.asset_note.execute(|note| {
+                        window.draw_ex(
+                            &Rectangle::new(
+                                (
+                                    pos.x,
+                                    pos.y - hit_line
+                                        + (size.y
+                                            - (base.time as f32 - position) * (speed / 100.0)),
+                                ),
+                                (size.x, speed / 4.0),
                             ),
-                            (size.x, speed / 4.0),
-                        ),
-                        Img(&note),
-                        Transform::IDENTITY,
-                        3,
-                    );
+                            Img(&note),
+                            Transform::IDENTITY,
+                            3,
+                        );
+                        Ok(())
+                    });
                 }
+                HitObject::LongNote { base, end_time } => {
+                    if (base.time as f32 - position) * (speed / 100.0) > (size.y + 50.0) {
+                        break;
+                    }
+                    self.asset_slider_body.execute(|slider_body| {
+                        window.draw_ex(
+                            &Rectangle::new(
+                                (
+                                    pos.x,
+                                    pos.y - hit_line
+                                        + (size.y
+                                            - (*end_time as f32 - position) * (speed / 100.0)),
+                                ),
+                                (size.x, (*end_time - base.time) as f32 * (speed / 100.0)),
+                            ),
+                            Img(&slider_body),
+                            Transform::scale((1, -1)),
+                            3,
+                        );
+                        Ok(())
+                    });
+                    self.asset_slider_end.execute(|slider_end| {
+                        window.draw_ex(
+                            &Rectangle::new(
+                                (
+                                    pos.x,
+                                    pos.y - hit_line
+                                        + (size.y
+                                            - (base.time as f32 - position) * (speed / 100.0)),
+                                ),
+                                (size.x, speed / 4.0),
+                            ),
+                            Img(&slider_end),
+                            Transform::IDENTITY,
+                            3,
+                        );
+                        window.draw_ex(
+                            &Rectangle::new(
+                                (
+                                    pos.x,
+                                    pos.y - hit_line
+                                        + (size.y
+                                            - (*end_time as f32 - position) * (speed / 100.0)),
+                                ),
+                                (size.x, speed / 4.0),
+                            ),
+                            Img(&slider_end),
+                            Transform::scale((1, -1)),
+                            3,
+                        );
+                        Ok(())
+                    });
+                }
+                _ => (),
             }
-            Ok(())
-        });
+        }
     }
 }
