@@ -18,7 +18,7 @@ use crate::hit_score::{HitResult, HitScore};
 use crate::lane::{Lane, LaneSkin};
 use crate::number::Number;
 
-use osu_format::{HitObject, TimingPoint};
+use osu_format::{Event, HitObject, TimingPoint};
 
 #[derive(PartialEq, Clone, Copy)]
 enum GameState {
@@ -92,6 +92,22 @@ impl State for Camera {
         let f = std::fs::File::open("alice.osu").unwrap();
         let f = std::io::BufReader::new(f);
         let beatmap = osu_format::Parser::new(f.lines()).parse().unwrap();
+        let bg = if let Event::BackgroundMedia { filepath } = beatmap
+            .events
+            .iter()
+            .find(|event| {
+                if let Event::BackgroundMedia { .. } = event {
+                    true
+                } else {
+                    false
+                }
+            })
+            .unwrap()
+        {
+            filepath
+        } else {
+            unreachable!()
+        };
 
         let lane_maps =
             beatmap
@@ -112,9 +128,10 @@ impl State for Camera {
 
         let hotkeys = vec![Key::S, Key::D, Key::F, Key::Space, Key::J, Key::K, Key::L];
 
-        let asset_bg = Asset::new(Image::load("bg.png"));
+        let asset_bg = Asset::new(Image::load(bg.clone()));
         let asset_music = Asset::new(Sound::load("music.mp3"));
 
+        let od = beatmap.difficulty.overall_difficulty;
         Ok(Camera {
             timing_points: beatmap.timing_points,
             speed: 0.2,
@@ -125,9 +142,8 @@ impl State for Camera {
             asset_music,
             number: Number::new().unwrap(),
             state: GameState::Paused,
-            // TODO read OD from beatmap
             // TODO read lane count from beatmap
-            lanes: new_lanes(7, lane_maps, hotkeys, 3.0).unwrap(),
+            lanes: new_lanes(7, lane_maps, hotkeys, od).unwrap(),
         })
     }
 
