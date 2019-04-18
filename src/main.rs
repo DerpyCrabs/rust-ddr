@@ -1,4 +1,6 @@
+#![feature(clamp)]
 use std::io::prelude::*;
+use std::path::Path;
 pub mod hit_score;
 pub mod lane;
 pub mod number;
@@ -39,18 +41,10 @@ struct Camera {
     lanes: Vec<Lane>,
 }
 
-// TODO make this function lane count agnostic
-fn x_to_lane(x: u32) -> usize {
-    match x {
-        36 => 0,
-        109 => 1,
-        182 => 2,
-        256 => 3,
-        329 => 4,
-        402 => 5,
-        475 => 6,
-        _ => unimplemented!(),
-    }
+fn x_to_lane(x: u32, lane_count: u32) -> usize {
+    (x as f32 / (512.0 / lane_count as f32))
+        .floor()
+        .clamp(0.0, (lane_count - 1) as f32) as usize
 }
 
 fn new_lanes(
@@ -89,10 +83,13 @@ fn new_lanes(
 
 impl State for Camera {
     fn new() -> Result<Camera> {
-        let f = std::fs::File::open("alice.osu").unwrap();
+        std::env::set_current_dir(std::env::current_dir().unwrap().parent().unwrap()).unwrap();
+        let map_path = std::env::args().collect::<Vec<String>>()[1].clone();
+
+        let f = std::fs::File::open(&map_path).unwrap();
         let f = std::io::BufReader::new(f);
         let beatmap = osu_format::Parser::new(f.lines()).parse().unwrap();
-        let note_count = beatmap.difficulty.circle_size;
+        let note_count = beatmap.difficulty.circle_size as u32;
         let bg = if let Event::BackgroundMedia { filepath } = beatmap
             .events
             .iter()
@@ -105,30 +102,42 @@ impl State for Camera {
             })
             .unwrap()
         {
-            filepath
+            Path::new(&map_path)
+                .parent()
+                .map(|par| par.join(filepath).to_string_lossy().into_owned())
+                .unwrap_or(filepath.to_string())
         } else {
             unreachable!()
         };
-        let music = beatmap.general.audio_filename;
+        let music = Path::new(&map_path)
+            .parent()
+            .map(|par| {
+                par.join(&beatmap.general.audio_filename)
+                    .to_string_lossy()
+                    .into_owned()
+            })
+            .unwrap_or(beatmap.general.audio_filename.to_string());
+        let lane_maps = beatmap.hit_objects.iter().fold(
+            vec![Vec::new(); note_count as usize],
+            |mut acc, hit_object| {
+                match hit_object {
+                    HitObject::Circle { base } => {
+                        acc[x_to_lane(base.x, note_count)].push(hit_object.clone())
+                    }
+                    HitObject::LongNote { base, .. } => {
+                        acc[x_to_lane(base.x, note_count)].push(hit_object.clone())
+                    }
+                    _ => (),
+                };
+                acc
+            },
+        );
 
-        let lane_maps =
-            beatmap
-                .hit_objects
-                .iter()
-                .fold(vec![Vec::new(); 7], |mut acc, hit_object| {
-                    match hit_object {
-                        HitObject::Circle { base } => {
-                            acc[x_to_lane(base.x)].push(hit_object.clone())
-                        }
-                        HitObject::LongNote { base, .. } => {
-                            acc[x_to_lane(base.x)].push(hit_object.clone())
-                        }
-                        _ => (),
-                    };
-                    acc
-                });
-
-        let hotkeys = vec![Key::S, Key::D, Key::F, Key::Space, Key::J, Key::K, Key::L];
+        let hotkeys = if note_count == 7 {
+            vec![Key::S, Key::D, Key::F, Key::Space, Key::J, Key::K, Key::L]
+        } else {
+            vec![Key::D, Key::F, Key::J, Key::K]
+        };
 
         let asset_bg = Asset::new(Image::load(bg.clone()));
         let asset_music = Asset::new(Sound::load(music.clone()));
@@ -136,7 +145,7 @@ impl State for Camera {
         let od = beatmap.difficulty.overall_difficulty;
         Ok(Camera {
             timing_points: beatmap.timing_points,
-            speed: 0.2,
+            speed: 0.35,
             position: 0.0,
             score: 0,
             hit_score: HitScore::new().unwrap(),
