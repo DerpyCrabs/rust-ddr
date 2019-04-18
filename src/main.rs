@@ -221,10 +221,15 @@ impl State for Camera {
         let position = self.position;
         let speed = self.speed;
         let mpb = self.timing_points[0].milliseconds_per_beat;
+        let lane_count = self.lanes.len();
         self.lanes.iter_mut().enumerate().for_each(|(i, lane)| {
             lane.draw(
                 window,
-                &Vector::new((w as i32 / 2) - 256 + (i as i32) * 73, 0),
+                &Vector::new(
+                    (w as i32 / 2) - ((lane_count as f32 * 0.5) * 73.0) as i32
+                        + (i as f32 * 73.0) as i32,
+                    0,
+                ),
                 &Vector::new(72, h),
                 position,
                 speed * mpb,
@@ -236,8 +241,16 @@ impl State for Camera {
         for i in 0..(self.lanes.len() + 1) {
             window.draw(
                 &Line::new(
-                    ((w as i32 / 2) - 256 + (i as i32) * 73, 0),
-                    ((w as i32 / 2) - 256 + (i as i32) * 73, h - 106.0),
+                    (
+                        (w as i32 / 2) - ((lane_count as f32 * 0.5) * 73.0) as i32
+                            + (i as f32 * 73.0) as i32,
+                        0,
+                    ),
+                    (
+                        (w as i32 / 2) - ((lane_count as f32 * 0.5) * 73.0) as i32
+                            + (i as f32 * 73.0) as i32,
+                        h - 106.0,
+                    ),
                 ),
                 Col(Color::from_rgba(255, 255, 255, 0.4)),
             );

@@ -25,10 +25,10 @@ pub struct HitScore {
 
 impl HitScore {
     pub fn new() -> Result<HitScore> {
-        let asset_hit300 = Asset::new(Image::load("skin/hit300.png"));
-        let asset_hit100 = Asset::new(Image::load("skin/hit100.png"));
-        let asset_hit50 = Asset::new(Image::load("skin/hit50.png"));
-        let asset_miss = Asset::new(Image::load("skin/hit0.png"));
+        let asset_hit300 = Asset::new(Image::load("static/skin/hit300.png"));
+        let asset_hit100 = Asset::new(Image::load("static/skin/hit100.png"));
+        let asset_hit50 = Asset::new(Image::load("static/skin/hit50.png"));
+        let asset_miss = Asset::new(Image::load("static/skin/hit0.png"));
 
         Ok(HitScore {
             playing: None,
@@ -83,7 +83,7 @@ impl HitScore {
                             1.0 - (((animation_duration / 2.0 - animation_progress).abs() as f32)
                                 / (animation_duration / 2.0)),
                         )),
-                        1,
+                        5,
                     );
                     Ok(())
                 })

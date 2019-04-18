@@ -50,23 +50,23 @@ impl Lane {
             LaneSkin::LaneS => "S",
         };
         let asset_key = Asset::new(Image::load(format!(
-            "skin/mania-key{}.png",
+            "static/skin/mania-key{}.png",
             lane_skin_suffix
         )));
         let asset_key_down = Asset::new(Image::load(format!(
-            "skin/mania-key{}D.png",
+            "static/skin/mania-key{}D.png",
             lane_skin_suffix
         )));
         let asset_note = Asset::new(Image::load(format!(
-            "skin/mania-note{}.png",
+            "static/skin/mania-note{}.png",
             lane_skin_suffix
         )));
         let asset_slider_body = Asset::new(Image::load(format!(
-            "skin/mania-note{}L.png",
+            "static/skin/mania-note{}L.png",
             lane_skin_suffix
         )));
         let asset_slider_end = Asset::new(Image::load(format!(
-            "skin/mania-note{}H.png",
+            "static/skin/mania-note{}H.png",
             lane_skin_suffix
         )));
 

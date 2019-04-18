@@ -13,7 +13,10 @@ impl Number {
     pub fn new() -> Result<Number> {
         let mut digits = Vec::new();
         for i in 0..10 {
-            digits.push(Asset::new(Image::load(format!("skin/score-{}.png", i))));
+            digits.push(Asset::new(Image::load(format!(
+                "static/skin/score-{}.png",
+                i
+            ))));
         }
         Ok(Number { digits })
     }
